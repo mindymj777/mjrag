@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>張茗溱 - 智能檢索和生成系統</title>
+</head>
+<body>
+    <h1>張茗溱 - 智能檢索和生成系統</h1>
+    <form id="query-form">
+        <label for="question">請輸入您的問題：</label>
+        <br>
+        <input type="text" id="question" name="question" style="width: 300px;">
+        <br><br>
+        <button type="submit">提交</button>
+    </form>
+    <hr>
+    <h2>生成的答案：</h2>
+    <div id="response-container" style="white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; min-height: 100px;"></div>
+
+    <script>
+        document.getElementById("query-form").addEventListener("submit", function(event) {
+            event.preventDefault(); // 防止表單默認提交行為
+
+            const questionInput = document.getElementById("question");
+            const question = questionInput.value.trim();
+            if (!question) {
+                alert("請輸入問題！");
+                return;
+            }
+
+            // 清空先前的結果
+            const responseContainer = document.getElementById("response-container");
+            responseContainer.innerText = "生成中...";
+
+            // 使用 Fetch 發送請求並建立 EventSource 來接收流式回應
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ question })
+            }).then(response => {
+                if (!response.ok) throw new Error("伺服器回應錯誤");
+                responseContainer.innerText = ""; // 清空暫存提示
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+
+                // 持續讀取流數據
+                function readStream() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) return;
+                        responseContainer.innerText += decoder.decode(value, { stream: true });
+                        readStream();
+                    }).catch(error => {
+                        responseContainer.innerText += "\\n[發生錯誤]";
+                        console.error(error);
+                    });
+                }
+                readStream();
+            }).catch(error => {
+                responseContainer.innerText = "請求失敗：" + error.message;
+                console.error(error);
+            });
+        });
+    </script>
+</body>
+</html>
