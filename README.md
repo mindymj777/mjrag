@@ -65,7 +65,7 @@
 2. 啟動 Flask 應用：
 
    ```bash
-   python app.py
+   python mjrag.py
    ```
 
 3. 在瀏覽器中發送 POST 請求：
