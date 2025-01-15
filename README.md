@@ -21,10 +21,10 @@
 請確保已安裝以下 Python 庫：
 
 - Flask
-- langchain\_community
+- langchain_community
 - langchain
-- langchain\_huggingface
-- llama\_cpp
+- langchain_huggingface
+- llama_cpp
 
 ---
 
@@ -98,5 +98,4 @@ curl -X POST http://127.0.0.1:5000/ -d "question=什麼是腸易激？"
 ```
 
 ---
-
 
