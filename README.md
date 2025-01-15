@@ -1,8 +1,8 @@
-# Flask + LangChain + Llama 問答系統
+# Flask + LangChain + Llama 問答系統(RAG)
 
 ## 簡介
 
-這是一個基於 Flask 的問答應用，結合了 LangChain 文本檢索和 Llama 模型來實現自然語言處理功能。該系統可以從本地文件中檢索內容，並基於檢索結果生成深入且全面的回答。
+這是一個基於 Flask 的問答應用，結合了 LangChain 文本檢索和 Llama 模型來實現RAG技術。該系統可以從本地文件中檢索內容，並基於檢索結果生成深入且全面的回答。
 
 ---
 
