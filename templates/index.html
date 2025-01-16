@@ -33,6 +33,9 @@
 
             const responseContainer = document.getElementById("response-container");
             const statusContainer = document.getElementById("status-container");
+            responseContainer.innerText = ""; // 清空舊的回答
+            statusContainer.innerText = ""; // 清空舊的狀態
+
             responseContainer.innerText = "生成中...";
             statusContainer.innerText = "";
 
