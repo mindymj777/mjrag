@@ -19,6 +19,7 @@
     <div id="response-container" style="white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; min-height: 100px;">
         
     </div>
+    <div id="status-container" style="margin-top: 10px; font-style: italic;"></div>
 
     <script>
         document.getElementById("query-form").addEventListener("submit", function(event) {
@@ -31,30 +32,38 @@
             }
 
             const responseContainer = document.getElementById("response-container");
+            const statusContainer = document.getElementById("status-container");
             responseContainer.innerText = "生成中...";
+            statusContainer.innerText = "";
 
-            // 發送請求並處理流式數據
+            // 使用 Fetch 進行流式處理
             fetch("/", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({ question })
             }).then(response => {
                 if (!response.ok) throw new Error("伺服器錯誤");
+
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
-                responseContainer.innerText = "";
+                let responseText = "";
 
                 // 讀取流式數據
                 function readStream() {
                     reader.read().then(({ done, value }) => {
-                        if (done) return;
-                        responseContainer.innerText += decoder.decode(value, { stream: true });
-                        readStream();
+                        if (done) {
+                            statusContainer.innerText = "已完成"; // 設定「已完成」
+                            return;
+                        }
+                        responseText += decoder.decode(value, { stream: true });
+                        responseContainer.innerText = responseText; // 更新已生成的答案
+                        readStream(); // 繼續讀取流
                     });
                 }
                 readStream();
             }).catch(error => {
                 responseContainer.innerText = "錯誤：" + error.message;
+                statusContainer.innerText = "";
             });
         });
     </script>

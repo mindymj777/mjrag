@@ -15,7 +15,7 @@ file_path = r"D:\mjrag\ming.pdf"
 loader = file_path.endswith(".pdf") and PyPDFLoader(file_path) or TextLoader(file_path)
 
 # 切分文字
-splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
+splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
 texts = loader.load_and_split(splitter)
 
 # 建立本地 DB
@@ -32,15 +32,16 @@ llm = Llama.from_pretrained(
 )
 
 # 定義提示模板
-prompt_template ="""
-根據以下檢索到的資料，請回答問題。如果檢索到的資料不足以回答，請根據常識進行合理推測，並在答案中標註「推測內容」。請務必保持回答清晰且簡潔：
+prompt_template = """
+請根據以下檢索到的資料回答問題。如果資料不足以回答問題，請回應「無法回答」，並整理檢索內容，注意不要進行任何推測或誇大事實。
+
 檢索內容：
 {context}
 
 問題：
 {question}
 
-回答：
+回答時請保持準確和謹慎、清晰、具體且基於檢索資料的回答，僅依賴檢索到的資料，不要進行推測：
 """
 prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
 
