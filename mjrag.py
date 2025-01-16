@@ -11,17 +11,17 @@ app = Flask(__name__)
 
 # 讀取檔案
 # file_path = r"E:\\腸易激.pdf"
-file_path = r"C:\Users\mindy\桌面\張茗溱.pdf"
+file_path = r"D:\mjrag\ming.pdf"
 loader = file_path.endswith(".pdf") and PyPDFLoader(file_path) or TextLoader(file_path)
 
 # 切分文字
-splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
+splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
 texts = loader.load_and_split(splitter)
 
 # 建立本地 DB
 embeddings = HuggingFaceEmbeddings(model_name="shibing624/text2vec-base-chinese")
 db = Chroma.from_documents(texts, embeddings)
-retriever = db.as_retriever(search_kwargs={"k": 1})
+retriever = db.as_retriever(search_kwargs={"k": 2})
 
 # 使用 Llama 進行問答
 llm = Llama.from_pretrained(
@@ -32,37 +32,46 @@ llm = Llama.from_pretrained(
 )
 
 # 定義提示模板
-prompt_template = """
-根據以下檢索資料，請提供一個的回答，並補充必要的背景信息和實例。請確保回答全面且深入。
-資料：
+prompt_template ="""
+根據以下檢索到的資料，請回答問題。如果檢索到的資料不足以回答，請根據常識進行合理推測，並在答案中標註「推測內容」。請務必保持回答清晰且簡潔：
+檢索內容：
 {context}
+
 問題：
 {question}
+
+回答：
 """
 prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
-@app.route("/", methods=["POST"])
+
+@app.route("/", methods=["GET"])
 def index():
-    question = request.form.get("question")
+    return render_template("index.html")
+
+@app.route("/", methods=["POST"])
+def generate_response():
+    question = request.form.get("question", "").strip()
     if not question:
-        return "請提供問題", 400
+        return Response("請輸入問題！", status=400)
 
-    # 檢索相關內容
-    retrieved_docs = retriever.invoke(question)
+    retrieved_docs = retriever.get_relevant_documents(question)
     context = "\n".join([doc.page_content[:1000] for doc in retrieved_docs])
-
-    # 定義流式生成方法
-    def generate_response():
+    if not context.strip():
+        return "抱歉，我無法從檢索到的資料中找到相關答案。請提供更多的問題背景或上下文。"
+    print(retrieved_docs)
+    def stream_response():
         response = llm(
             f"{prompt.format(context=context, question=question)}", 
             max_tokens=2048, 
-            temperature=0.8, 
+            temperature=0.3, 
             stream=True
         )
         for chunk in response:
             yield chunk["choices"][0]["text"]
 
-    return Response(generate_response(), content_type="text/event-stream")
+    return Response(stream_response(), content_type="text/plain")
+
 
 # 啟動 Flask 應用
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
