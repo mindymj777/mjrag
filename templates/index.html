@@ -1,27 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>張茗溱 - 智能檢索和生成系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color:  #2063f5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        button {
+            background-color: #6796fd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #165cf5;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #response-container {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 100px;
+            border-radius: 5px;
+            background: #f4f4f4;
+            font-family: "Courier New", monospace;
+        }
+
+        #status-container {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #eee;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>張茗溱 - 智能檢索和生成系統</h1>
-    <form id="query-form">
-        <label for="question">請輸入您的問題：</label>
-        <br>
-        <input type="text" id="question" name="question" style="width: 300px;">
-        <br><br>
-        <button type="submit">提交</button>
-    </form>
-    <hr>
-    <h2>生成的答案：</h2>
-    <div id="response-container" style="white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; min-height: 100px;">
-        
-    </div>
-    <div id="status-container" style="margin-top: 10px; font-style: italic;"></div>
+    <header>
+        <h1 style="color: white;">張茗溱 - 智能檢索和生成系統</h1>
+    </header>
+
+    <main>
+        <!-- 提供建議問題 -->
+        <div>
+            <h3>建議問題：</h3>
+            <button onclick="setSuggestedQuestion('請用一百字介紹張茗溱？')">請用一百字介紹張茗溱？</button>
+            <button onclick="setSuggestedQuestion('她的專業領域和技能包括哪些？')">她的專業領域和技能包括哪些？</button>
+            <button onclick="setSuggestedQuestion('台灣小吃有哪些?')">台灣小吃有哪些？</button>
+        </div>
+
+        <hr>
+
+        <!-- 輸入問題表單 -->
+        <form id="query-form">
+            <label for="question">請輸入您的問題：</label>
+            <br>
+            <input type="text" id="question" name="question" placeholder="請輸入您的問題...">
+            <br>
+            <button type="submit">提交</button>
+        </form>
+
+        <hr>
+
+        <h2>生成的答案：</h2>
+        <div id="response-container"></div>
+        <div id="status-container"></div>
+    </main>
 
     <script>
+        // 設置建議問題到輸入框
+        function setSuggestedQuestion(question) {
+            document.getElementById("question").value = question;
+        }
+
         document.getElementById("query-form").addEventListener("submit", function(event) {
             event.preventDefault(); // 停止表單的默認提交行為
             
@@ -55,7 +152,7 @@
                 function readStream() {
                     reader.read().then(({ done, value }) => {
                         if (done) {
-                            statusContainer.innerText = "已完成"; // 設定「已完成」
+                            statusContainer.innerText = "回答已完成，大部分內容是正確的，但仍有可能出現不準確的情況，詳情請參考張茗溱的履歷以了解更多資訊。"; // 設定「已完成」
                             return;
                         }
                         responseText += decoder.decode(value, { stream: true });

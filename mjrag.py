@@ -15,13 +15,13 @@ file_path = r"D:\mjrag\ming.pdf"
 loader = file_path.endswith(".pdf") and PyPDFLoader(file_path) or TextLoader(file_path)
 
 # 切分文字
-splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
+splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 texts = loader.load_and_split(splitter)
 
 # 建立本地 DB
-embeddings = HuggingFaceEmbeddings(model_name="shibing624/text2vec-base-chinese")
+embeddings = HuggingFaceEmbeddings(model_name="GanymedeNil/text2vec-large-chinese")
 db = Chroma.from_documents(texts, embeddings)
-retriever = db.as_retriever(search_kwargs={"k": 2})
+retriever = db.as_retriever(search_kwargs={"k": 3})
 
 # 使用 Llama 進行問答
 llm = Llama.from_pretrained(
@@ -33,7 +33,7 @@ llm = Llama.from_pretrained(
 
 # 定義提示模板
 prompt_template = """
-請根據以下檢索到的資料回答問題。如果資料不足以回答問題，請回應「無法回答」，並整理檢索內容，注意不要進行任何推測或誇大事實。
+請根據以下檢索到的資料回答問題。如果資料不足以回答問題，請直接回應「無法回答」，並附上檢索結果的摘要。回答時需直接引用檢索內容中的句子或段落，避免進行任何推測、誇大或整合，不要重複或引用問題中的句子或詞語。
 
 檢索內容：
 {context}
@@ -41,7 +41,7 @@ prompt_template = """
 問題：
 {question}
 
-回答時請保持準確和謹慎、清晰、具體且基於檢索資料的回答，僅依賴檢索到的資料，不要進行推測：
+回答：
 """
 prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
 
@@ -57,9 +57,26 @@ def generate_response():
 
     retrieved_docs = retriever.get_relevant_documents(question)
     context = "\n".join([doc.page_content[:1000] for doc in retrieved_docs])
-    if not context.strip():
-        return "抱歉，我無法從檢索到的資料中找到相關答案。請提供更多的問題背景或上下文。"
-    print(retrieved_docs)
+
+    # if not context.strip():
+    #     # 沒有檢索到相關資料，語言模型直接生成回答
+    #     def stream_response():
+    #         response = llm(question, max_tokens=2048, temperature=0.7, stream=True)
+    #         for chunk in response:
+    #             yield chunk["choices"][0]["text"]
+    #         yield "\n\n[注意：此回答為語言模型根據問題自行生成，未依賴檢索資料]"
+    #     return Response(stream_response(), content_type="text/plain")
+    
+        # 打印每個檢索結果的相似度分數
+    print("query:", question, "\n")
+    retrieved_docs_with_scores = db.similarity_search_with_score(question, k=3)
+    # print("retrieved_docs",retrieved_docs)
+    # 打印檢索結果及其相似度分數
+    for doc, score in retrieved_docs_with_scores:
+        print(f"內容: {doc.page_content}")  # 打印文檔的前100個字符
+        print(f"相似度分數: {score}")  # 打印相似度分數
+        print("---")
+    
     def stream_response():
         response = llm(
             f"{prompt.format(context=context, question=question)}", 
@@ -67,7 +84,9 @@ def generate_response():
             temperature=0.3, 
             stream=True
         )
+        print("ans=")
         for chunk in response:
+            print(chunk["choices"][0]["text"], end="", flush=True)
             yield chunk["choices"][0]["text"]
 
     return Response(stream_response(), content_type="text/plain")
