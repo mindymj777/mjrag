@@ -2,17 +2,18 @@
 
 ## 簡介
 
-這是一個基於 Flask 的問答應用，結合了 LangChain 文本檢索和 Llama 模型來實現RAG技術。該系統可以從本地文件中檢索內容，並基於檢索結果生成深入且全面的回答。
+本專案是一個基於 Flask 框架的問答應用，結合了 LangChain 文本檢索技術與 Llama 模型，實現了檢索增強生成 (RAG) 的核心功能。該系統可以從本地文件中檢索相關內容，並基於檢索結果生成準確且相關性高的回答。
+
 
 ---
 
 ## 功能
 
-- **文件加載與處理**：支持 PDF 與文本文件。
-- **文本分塊**：將文件內容按照段落分割，便於處理長文本。
-- **語義檢索**：基於 Chroma 向量資料庫進行檢索。
-- **模型問答**：使用 Llama 模型生成基於檢索內容的答案。
-- **流式響應**：支持流式輸出模型生成的回答。
+- **文件加載與處理**：支持 PDF 和文本文件的加載，並對其內容進行解析與分割。
+- **文本分塊與處理**：使用 `RecursiveCharacterTextSplitter` 進行段落分塊，有效應對長文本文件的處理需求。
+- **語義檢索**：通過 Chroma 向量資料庫實現高效檢索，基於語義相似度返回最相關的內容。
+- **模型問答**：使用 Hugging Face 嵌入模型 `text2vec-large-chinese` 和 Llama 模型進行問答生成。
+- **流式響應輸出**：支持流式輸出模型生成的回答。
 
 ---
 
@@ -28,74 +29,79 @@
 
 ---
 
-## 環境設置
 
-1. 安裝必要的 Python 套件：
+## 環境依賴
 
-   ```bash
-   pip install flask langchain langchain-community chromadb llama-cpp-python
-   ```
+在使用本系統前，請確保安裝下列工具和 Python 庫：
 
-2. 確保您已下載 HuggingFace 的文本嵌入模型：
+- **必要工具**  
+  - Python 3.8+
+  - 本地 GPU 環境（以支援模型加速運行）
 
-   - 模型名稱：`shibing624/text2vec-base-chinese`
+- **Python 套件**  
+  ```bash
+  pip install flask langchain langchain-community chromadb llama-cpp-python
+  ```
 
-3. 準備 Llama 模型檔案：
-
-   - 模型路徑：`taide-7b-a.2-q4_k_m.gguf`
+- **模型**  
+  - Hugging Face 嵌入模型：`GanymedeNil/text2vec-large-chinese`
+  - Llama 模型：`taide/TAIDE-LX-7B-Chat-4bit`
 
 ---
 
 ## 文件結構
 
-```
-|-- mjrag.py               # 主程式
-|-- 張茗溱.pdf           # 測試用的文件
-|-- requirements.txt    # 依賴庫列表
+```plaintext
+|-- mjrag.py                  # Flask 主程序
+|-- templates/              # HTML 模板文件夾
+|   |-- index.html          # 用戶輸入表單頁面
+|-- D:/mjrag/ming.pdf       # 測試文件 (可自定義)
+|-- requirements.txt        # Python 依識庫列表
 ```
 
 ---
 
-## 使用方法
+## 環境設置與啟動
 
-1. 修改文件路徑：
+1. **準備本地模型和文件**  
+   - 將需要處理的文件放置在指定路徑（如 `D:/mjrag/ming.pdf`）。
 
-   - 將 `file_path` 的路徑設置為您想要處理的文件。
+2. **安裝依識庫**  
+   使用下列命令安裝 Python 套件：
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2. 啟動 Flask 應用：
-
+3. **運行應用**  
+   啟動 Flask 應用：
    ```bash
    python mjrag.py
    ```
 
-3. 在瀏覽器中發送 POST 請求：
-
-   - 請求路徑：`http://127.0.0.1:5000/`
-   - 表單參數：`question`（用戶的問題）
+4. **使用應用**  
+   開啟瀏覽器，訪問 [http://127.0.0.1:5000/](http://127.0.0.1:5000/)，輸入問題以測試問答功能。
 
 ---
 
-## API 接口
+## 使用說明
 
-### POST `/`
+### 用戶界面
 
-**請求參數**：
+- **標題區域**  
+  主頁頂部顯示系統標題，例如：「張茗瀾 - 智能検索和生成系統」。
 
-- `question` (字符串): 用戶的問題。
+- **建議問題按鈕**  
+  提供多個建議問題按鈕，點擊後會自動將問題填入輸入框，方便用戶快速使用。
 
-**返回值**：
+- **輸入框**  
+  用戶可在輸入框中自行編寫問題，然後點擊「提交」按鈕。
 
-- 流式響應，包含模型生成的答案。
+- **生成答案區域**  
+  提交後，系統會基於搜索結果生成答案，並展示於「生成的答案」區域。
 
----
-
-## 示例請求
-
-使用 `curl` 測試：
-
-```bash
-curl -X POST http://127.0.0.1:5000/ -d "question=什麼是腸易激？"
-```
+- **樣式建議**  
+  可使用 CSS 美化按鈕和輸入框，例如增加圓角或調整顏色，讓界面更加現代化。
 
 ---
+
 
