@@ -43,7 +43,7 @@
   ```
 
 - **模型**  
-  - Hugging Face 嵌入模型：`GanymedeNil/text2vec-large-chinese`
+  - Hugging Face 嵌入模型：`GanymedeNil/text2vec-large-chinese`(https://huggingface.co/GanymedeNil/text2vec-large-chinese)
   - Llama 模型：`taide/TAIDE-LX-7B-Chat-4bit`(https://taide.tw/index)
 
 ---
