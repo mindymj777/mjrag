@@ -27,8 +27,8 @@ retriever = db.as_retriever(search_kwargs={"k": 3})
 llm = Llama.from_pretrained(
     repo_id="taide/TAIDE-LX-7B-Chat-4bit",
     filename="taide-7b-a.2-q4_k_m.gguf",
-    n_ctx=4096,  # 增加上下文長度
-    max_tokens=3000
+    n_ctx=2048,  # 增加上下文長度
+    device_map="auto"
 )
 
 # 定義提示模板
