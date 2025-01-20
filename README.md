@@ -86,6 +86,7 @@
 ## 使用說明
 
 ### 用戶界面
+![image](https://github.com/user-attachments/assets/158ba620-ac67-4c3c-9dde-31ba0fdeda38)
 
 - **標題區域**  
   主頁頂部顯示系統標題，例如：「張茗溱 - 智能檢索和生成系統」。
