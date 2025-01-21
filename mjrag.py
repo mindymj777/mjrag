@@ -10,7 +10,7 @@ from langchain.prompts import PromptTemplate
 app = Flask(__name__)
 
 # 讀取檔案
-# file_path = r"E:\\腸易激.pdf"
+
 file_path = r"D:\mjrag\ming.pdf"
 loader = file_path.endswith(".pdf") and PyPDFLoader(file_path) or TextLoader(file_path)
 
@@ -27,7 +27,7 @@ retriever = db.as_retriever(search_kwargs={"k": 3})
 llm = Llama.from_pretrained(
     repo_id="taide/TAIDE-LX-7B-Chat-4bit",
     filename="taide-7b-a.2-q4_k_m.gguf",
-    n_ctx=2048,  # 增加上下文長度
+    n_ctx=4096,  # 增加上下文長度
     device_map="auto"
 )
 
@@ -58,29 +58,19 @@ def generate_response():
     retrieved_docs = retriever.get_relevant_documents(question)
     context = "\n".join([doc.page_content[:1000] for doc in retrieved_docs])
 
-    # if not context.strip():
-    #     # 沒有檢索到相關資料，語言模型直接生成回答
-    #     def stream_response():
-    #         response = llm(question, max_tokens=2048, temperature=0.7, stream=True)
-    #         for chunk in response:
-    #             yield chunk["choices"][0]["text"]
-    #         yield "\n\n[注意：此回答為語言模型根據問題自行生成，未依賴檢索資料]"
-    #     return Response(stream_response(), content_type="text/plain")
-    
-        # 打印每個檢索結果的相似度分數
     print("query:", question, "\n")
     retrieved_docs_with_scores = db.similarity_search_with_score(question, k=3)
     # print("retrieved_docs",retrieved_docs)
     # 打印檢索結果及其相似度分數
     for doc, score in retrieved_docs_with_scores:
-        print(f"內容: {doc.page_content}")  # 打印文檔的前100個字符
+        print(f"內容: {doc.page_content}")  
         print(f"相似度分數: {score}")  # 打印相似度分數
         print("---")
     
     def stream_response():
         response = llm(
             f"{prompt.format(context=context, question=question)}", 
-            max_tokens=2048, 
+            max_tokens=4096, 
             temperature=0.3, 
             stream=True
         )
